@@ -1,3 +1,4 @@
+import uuid
 import edgedb
 
 from pizza_store.entities.products import Category
@@ -26,3 +27,13 @@ class ProductsServiceRepo:
         """
         result = await self._client.query(query)
         return [Category(id=c.id, name=c.name) for c in result]
+
+    async def get_category(self, id: uuid.UUID) -> Category:
+        query = """
+        select products::Category {
+            id,
+            name
+        } filter .id = <uuid>$id;
+        """
+        result = await self._client.query_single(query, id=id)
+        return Category(id=result.id, name=result.name)

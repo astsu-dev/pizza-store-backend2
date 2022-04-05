@@ -2,7 +2,11 @@ import uuid
 from typing import Protocol
 
 from pizza_store.entities.products import Category
-from pizza_store.services.products.models import CategoryCreate, CategoryCreated
+from pizza_store.services.products.models import (
+    CategoryCreate,
+    CategoryCreated,
+    CategoryDeleted,
+)
 
 
 class IProductsServiceRepo(Protocol):
@@ -13,4 +17,7 @@ class IProductsServiceRepo(Protocol):
         ...
 
     async def get_category(self, id: uuid.UUID) -> Category:
+        ...
+
+    async def delete_category(self, id: uuid.UUID) -> CategoryDeleted:
         ...

@@ -10,3 +10,6 @@ class CategoryCreate:
 @dataclass(frozen=True)
 class CategoryCreated:
     id: uuid.UUID
+
+
+CategoryDeleted = CategoryCreated

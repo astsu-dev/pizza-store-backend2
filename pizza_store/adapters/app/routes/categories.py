@@ -31,7 +31,9 @@ async def get_categories(service: ProductsService = Depends(get_products_service
 
 
 @router.get("/{id}")
-async def get_category(id: uuid.UUID, service: ProductsService = Depends(get_products_service)):
+async def get_category(
+    id: uuid.UUID, service: ProductsService = Depends(get_products_service)
+):
     result = await service.get_category(id)
     return CategoryPydantic(**dataclasses.asdict(result))
 

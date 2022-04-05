@@ -1,4 +1,5 @@
 import uuid
+
 import edgedb
 
 from pizza_store.entities.products import Category

@@ -1,5 +1,5 @@
-from typing import Protocol
 import uuid
+from typing import Protocol
 
 from pizza_store.entities.products import Category
 from pizza_store.services.products.models import CategoryCreate, CategoryCreated

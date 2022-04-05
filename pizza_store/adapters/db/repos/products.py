@@ -3,7 +3,11 @@ import uuid
 import edgedb
 
 from pizza_store.entities.products import Category
-from pizza_store.services.products.models import CategoryCreate, CategoryCreated
+from pizza_store.services.products.models import (
+    CategoryCreate,
+    CategoryCreated,
+    CategoryDeleted,
+)
 
 
 class ProductsServiceRepo:
@@ -37,4 +41,13 @@ class ProductsServiceRepo:
         } filter .id = <uuid>$id;
         """
         result = await self._client.query_single(query, id=id)
+        # TODO: raise error if not exist
         return Category(id=result.id, name=result.name)
+
+    async def delete_category(self, id: uuid.UUID) -> CategoryDeleted:
+        query = """
+        delete products::Category filter .id = <uuid>$id;
+        """
+        result = await self._client.query_single(query, id=id)
+        # TODO: raise error if not exist
+        return CategoryDeleted(id=result.id)

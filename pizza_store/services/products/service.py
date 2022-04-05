@@ -1,3 +1,4 @@
+import uuid
 from pizza_store.entities.products import Category
 from pizza_store.services.products.interfaces import IProductsServiceRepo
 from pizza_store.services.products.models import CategoryCreate, CategoryCreated
@@ -12,3 +13,6 @@ class ProductsService:
 
     async def get_categories(self) -> list[Category]:
         return await self._repo.get_categories()
+
+    async def get_category(self, id: uuid.UUID) -> Category:
+        return await self._repo.get_category(id)

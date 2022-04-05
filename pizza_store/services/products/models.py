@@ -12,4 +12,18 @@ class CategoryCreated:
     id: uuid.UUID
 
 
-CategoryDeleted = CategoryCreated
+@dataclass(frozen=True)
+class CategoryDeleted:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class ProductCreate:
+    name: str
+    category_id: uuid.UUID
+    image_url: str
+
+
+@dataclass(frozen=True)
+class ProductCreated:
+    id: uuid.UUID

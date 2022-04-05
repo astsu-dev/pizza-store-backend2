@@ -6,6 +6,8 @@ from pizza_store.services.products.models import (
     CategoryCreate,
     CategoryCreated,
     CategoryDeleted,
+    ProductCreate,
+    ProductCreated,
 )
 
 
@@ -20,4 +22,7 @@ class IProductsServiceRepo(Protocol):
         ...
 
     async def delete_category(self, id: uuid.UUID) -> CategoryDeleted:
+        ...
+
+    async def create_product(self, product: ProductCreate) -> ProductCreated:
         ...

@@ -19,6 +19,9 @@ class CategoryCreatedPydantic(BaseModel):
     id: uuid.UUID
 
 
+CategoryDeletedPydantic = CategoryCreatedPydantic
+
+
 class CategoryPydantic(BaseModel):
     id: uuid.UUID
     name: str
@@ -45,3 +48,11 @@ async def create_category(
 ):
     result = await service.create_category(CategoryCreate(**category.dict()))
     return CategoryCreatedPydantic(**dataclasses.asdict(result))
+
+
+@router.delete("/{id}")
+async def delete_category(
+    id: uuid.UUID, service: ProductsService = Depends(get_products_service)
+):
+    result = await service.delete_category(id)
+    return CategoryDeletedPydantic(**dataclasses.asdict(result))

@@ -42,6 +42,11 @@ class ProductCreated:
 
 
 @dataclass(frozen=True)
+class ProductDeleted:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
 class ProductUpdate:
     id: uuid.UUID
     name: str

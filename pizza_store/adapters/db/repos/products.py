@@ -11,6 +11,7 @@ from pizza_store.services.products.models import (
     CategoryUpdated,
     ProductCreate,
     ProductCreated,
+    ProductDeleted,
     ProductUpdate,
     ProductUpdated,
     ProductVariantCreate,
@@ -178,6 +179,18 @@ class ProductsServiceRepo:
                 for v in result.variants
             ],
         )
+
+    async def delete_product(self, id: uuid.UUID) -> ProductDeleted:
+        query = """
+        delete products::Product
+        filter .id = <uuid>$id;
+        """
+        result = await self._client.query_single(
+            query,
+            id=id,
+        )
+        # TODO: raise error if not exists
+        return ProductDeleted(id=result.id)
 
     async def update_product(self, product: ProductUpdate) -> ProductUpdated:
         query = """

@@ -23,6 +23,10 @@ class ProductCreatedPydantic(BaseModel):
     id: uuid.UUID
 
 
+class ProductDeletedPydantic(BaseModel):
+    id: uuid.UUID
+
+
 ProductUpdatePydantic = ProductCreatePydantic
 
 
@@ -102,6 +106,15 @@ async def get_product(
         ],
         image_url=result.image_url,
     )
+
+
+@router.delete("/{id}")
+async def delete_product(
+    id: uuid.UUID,
+    service: ProductsService = Depends(get_products_service),
+) -> ProductDeletedPydantic:
+    result = await service.delete_product(id)
+    return ProductDeletedPydantic(id=result.id)
 
 
 @router.put("/{id}")

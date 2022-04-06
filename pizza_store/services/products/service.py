@@ -10,6 +10,7 @@ from pizza_store.services.products.models import (
     CategoryUpdated,
     ProductCreate,
     ProductCreated,
+    ProductDeleted,
     ProductUpdate,
     ProductUpdated,
     ProductVariantCreate,
@@ -45,6 +46,9 @@ class ProductsService:
 
     async def get_product(self, id: uuid.UUID) -> Product:
         return await self._repo.get_product(id)
+
+    async def delete_product(self, id: uuid.UUID) -> ProductDeleted:
+        return await self._repo.delete_product(id)
 
     async def update_product(self, product: ProductUpdate) -> ProductUpdated:
         return await self._repo.update_product(product)

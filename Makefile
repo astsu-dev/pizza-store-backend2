@@ -1,6 +1,6 @@
 fmt:
-	isort pizza_store
-	black pizza_store
+	isort pizza_store tests
+	black pizza_store tests
 migration:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev migration create
 migrate:

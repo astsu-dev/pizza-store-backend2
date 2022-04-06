@@ -5,7 +5,10 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from pizza_store.adapters.app.dependencies import get_products_service
-from pizza_store.services.products.models import ProductVariantCreate
+from pizza_store.services.products.models import (
+    ProductVariantCreate,
+    ProductVariantUpdate,
+)
 from pizza_store.services.products.service import ProductsService
 
 router = APIRouter(prefix="/product-variants")
@@ -23,6 +26,13 @@ class ProductVariantCreatedPydantic(BaseModel):
 
 
 class ProductVariantDeletedPydantic(BaseModel):
+    id: uuid.UUID
+
+
+ProductVariantUpdatePydantic = ProductVariantCreatePydantic
+
+
+class ProductVariantUpdatedPydantic(BaseModel):
     id: uuid.UUID
 
 
@@ -59,3 +69,21 @@ async def delete_product_variant(
 ) -> ProductVariantDeletedPydantic:
     result = await service.delete_product_variant(id)
     return ProductVariantDeletedPydantic(id=result.id)
+
+
+@router.put("/{id}")
+async def update_product_variant(
+    id: uuid.UUID,
+    product_variant: ProductVariantUpdatePydantic,
+    service: ProductsService = Depends(get_products_service),
+) -> ProductVariantUpdatedPydantic:
+    result = await service.update_product_variant(
+        ProductVariantUpdate(
+            id=id,
+            name=product_variant.name,
+            weight=product_variant.weight,
+            weight_units=product_variant.weight_units,
+            price=product_variant.price,
+        )
+    )
+    return ProductVariantUpdatedPydantic(id=result.id)

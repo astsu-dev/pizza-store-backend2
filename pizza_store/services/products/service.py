@@ -16,6 +16,8 @@ from pizza_store.services.products.models import (
     ProductVariantCreate,
     ProductVariantCreated,
     ProductVariantDeleted,
+    ProductVariantUpdate,
+    ProductVariantUpdated,
 )
 
 
@@ -60,3 +62,8 @@ class ProductsService:
 
     async def delete_product_variant(self, id: uuid.UUID) -> ProductVariantDeleted:
         return await self._repo.delete_product_variant(id)
+
+    async def update_product_variant(
+        self, product_variant: ProductVariantUpdate
+    ) -> ProductVariantUpdated:
+        return await self._repo.update_product_variant(product_variant)

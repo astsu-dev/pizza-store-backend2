@@ -17,6 +17,8 @@ from pizza_store.services.products.models import (
     ProductVariantCreate,
     ProductVariantCreated,
     ProductVariantDeleted,
+    ProductVariantUpdate,
+    ProductVariantUpdated,
 )
 
 
@@ -245,3 +247,27 @@ class ProductsServiceRepo:
         result = await self._client.query_single(query, id=id)
         # TODO: raise error if not exists
         return ProductVariantDeleted(id=result.id)
+
+    async def update_product_variant(
+        self, product_variant: ProductVariantUpdate
+    ) -> ProductVariantUpdated:
+        query = """
+        update products::ProductVariant
+        filter .id = <uuid>$id
+        set {
+            name := <str>$name,
+            weight := <decimal>$weight,
+            weight_units := <str>$weight_units,
+            price := <decimal>$price
+        };
+        """
+        result = await self._client.query_single(
+            query,
+            id=product_variant.id,
+            name=product_variant.name,
+            weight=product_variant.weight,
+            weight_units=product_variant.weight_units,
+            price=product_variant.price,
+        )
+        # TODO: raise error if not exists
+        return ProductVariantUpdated(id=result.id)

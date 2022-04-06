@@ -74,5 +74,19 @@ class ProductVariantCreated:
 
 
 @dataclass(frozen=True)
+class ProductVariantUpdate:
+    id: uuid.UUID
+    name: str
+    weight: Decimal
+    weight_units: str
+    price: Decimal
+
+
+@dataclass(frozen=True)
+class ProductVariantUpdated:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
 class ProductVariantDeleted:
     id: uuid.UUID

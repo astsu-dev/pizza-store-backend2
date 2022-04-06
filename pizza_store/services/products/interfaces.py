@@ -16,6 +16,8 @@ from pizza_store.services.products.models import (
     ProductVariantCreate,
     ProductVariantCreated,
     ProductVariantDeleted,
+    ProductVariantUpdate,
+    ProductVariantUpdated,
 )
 
 
@@ -56,4 +58,9 @@ class IProductsServiceRepo(Protocol):
         ...
 
     async def delete_product_variant(self, id: uuid.UUID) -> ProductVariantDeleted:
+        ...
+
+    async def update_product_variant(
+        self, product_variant: ProductVariantUpdate
+    ) -> ProductVariantUpdated:
         ...

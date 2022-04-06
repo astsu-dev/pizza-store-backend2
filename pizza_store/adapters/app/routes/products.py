@@ -35,7 +35,7 @@ class ProductPydantic(BaseModel):
 async def create_product(
     product: ProductCreatePydantic,
     service: ProductsService = Depends(get_products_service),
-):
+) -> ProductCreatedPydantic:
     result = await service.create_product(
         ProductCreate(
             name=product.name,

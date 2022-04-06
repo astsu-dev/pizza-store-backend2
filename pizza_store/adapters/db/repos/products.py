@@ -7,6 +7,8 @@ from pizza_store.services.products.models import (
     CategoryCreate,
     CategoryCreated,
     CategoryDeleted,
+    CategoryUpdate,
+    CategoryUpdated,
     ProductCreate,
     ProductCreated,
     ProductVariantCreate,
@@ -25,9 +27,9 @@ class ProductsServiceRepo:
             name := <str>$name
         };
         """
-        result = await self._client.query(query, name=category.name)
+        result = await self._client.query_single(query, name=category.name)
         # TODO: raise error if already exists
-        return CategoryCreated(id=result[0].id)
+        return CategoryCreated(id=result.id)
 
     async def get_categories(self) -> list[Category]:
         query = """
@@ -57,6 +59,18 @@ class ProductsServiceRepo:
         result = await self._client.query_single(query, id=id)
         # TODO: raise error if not exist
         return CategoryDeleted(id=result.id)
+
+    async def update_category(self, category: CategoryUpdate) -> CategoryUpdated:
+        query = """
+        update products::Category
+        filter .id = <uuid>$id
+        set {
+            name := <str>$name
+        };
+        """
+        result = await self._client.query_single(query, id=category.id, name=category.name)
+        # TODO: raise error if not exists
+        return CategoryUpdated(id=result.id)
 
     async def create_product(self, product: ProductCreate) -> ProductCreated:
         query = """

@@ -39,7 +39,7 @@ async def create_product_variant(
     product_id: uuid.UUID,
     product_variant: ProductVariantCreatePydantic,
     service: ProductsService = Depends(get_products_service),
-):
+) -> ProductVariantCreatedPydantic:
     result = await service.create_product_variant(
         ProductVariantCreate(
             product_id=product_id,
@@ -56,6 +56,6 @@ async def create_product_variant(
 async def delete_product_variant(
     id: uuid.UUID,
     service: ProductsService = Depends(get_products_service),
-):
+) -> ProductVariantDeletedPydantic:
     result = await service.delete_product_variant(id)
     return ProductVariantDeletedPydantic(id=result.id)

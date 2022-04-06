@@ -19,6 +19,17 @@ class CategoryDeleted:
 
 
 @dataclass(frozen=True)
+class CategoryUpdate:
+    id: uuid.UUID
+    name: str
+
+
+@dataclass(frozen=True)
+class CategoryUpdated:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
 class ProductCreate:
     name: str
     category_id: uuid.UUID

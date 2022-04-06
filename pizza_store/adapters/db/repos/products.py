@@ -122,6 +122,45 @@ class ProductsServiceRepo:
             for p in result
         ]
 
+    async def get_product(self, id: uuid.UUID) -> Product:
+        query = """
+        select products::Product {
+            id,
+            name,
+            category: {
+                id,
+                name
+            },
+            variants: {
+                id,
+                name,
+                weight,
+                weight_units,
+                price
+            },
+            image_url
+        } filter .id = <uuid>$id;
+        """
+
+        result = await self._client.query_single(query, id=id)
+        # TODO: raise error if not exists
+        return Product(
+            id=result.id,
+            name=result.name,
+            category=Category(id=result.category.id, name=result.category.name),
+            image_url=result.image_url,
+            variants=[
+                ProductVariant(
+                    id=v.id,
+                    name=v.name,
+                    weight=v.weight,
+                    weight_units=v.weight_units,
+                    price=v.price,
+                )
+                for v in result.variants
+            ],
+        )
+
     async def create_product_variant(
         self, product_variant: ProductVariantCreate
     ) -> ProductVariantCreated:

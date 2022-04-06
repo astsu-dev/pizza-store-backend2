@@ -36,6 +36,9 @@ class ProductsService:
     async def get_products(self, category_id: uuid.UUID | None = None) -> list[Product]:
         return await self._repo.get_products(category_id)
 
+    async def get_product(self, id: uuid.UUID) -> Product:
+        return await self._repo.get_product(id)
+
     async def create_product_variant(
         self, product_variant: ProductVariantCreate
     ) -> ProductVariantCreated:

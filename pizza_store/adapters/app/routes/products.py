@@ -71,3 +71,27 @@ async def get_products(
         )
         for p in result
     ]
+
+
+@router.get("/{id}")
+async def get_product(
+    id: uuid.UUID,
+    service: ProductsService = Depends(get_products_service),
+) -> ProductPydantic:
+    result = await service.get_product(id)
+    return ProductPydantic(
+        id=result.id,
+        name=result.name,
+        category=CategoryPydantic(id=result.category.id, name=result.category.name),
+        variants=[
+            ProductVariantPydantic(
+                id=v.id,
+                name=v.name,
+                weight=v.weight,
+                weight_units=v.weight_units,
+                price=v.price,
+            )
+            for v in result.variants
+        ],
+        image_url=result.image_url,
+    )

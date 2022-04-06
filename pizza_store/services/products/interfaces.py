@@ -33,6 +33,9 @@ class IProductsServiceRepo(Protocol):
     async def get_products(self, category_id: uuid.UUID | None = None) -> list[Product]:
         ...
 
+    async def get_product(self, id: uuid.UUID) -> Product:
+        ...
+
     async def create_product_variant(
         self, product_variant: ProductVariantCreate
     ) -> ProductVariantCreated:

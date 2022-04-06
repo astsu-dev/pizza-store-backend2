@@ -1,5 +1,6 @@
 import uuid
 from dataclasses import dataclass
+from decimal import Decimal
 
 
 @dataclass(frozen=True)
@@ -26,4 +27,23 @@ class ProductCreate:
 
 @dataclass(frozen=True)
 class ProductCreated:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class ProductVariantCreate:
+    product_id: uuid.UUID
+    name: str
+    weight: Decimal
+    weight_units: str
+    price: Decimal
+
+
+@dataclass(frozen=True)
+class ProductVariantCreated:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
+class ProductVariantDeleted:
     id: uuid.UUID

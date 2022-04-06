@@ -1,6 +1,6 @@
 import uuid
 
-from pizza_store.entities.products import Category
+from pizza_store.entities.products import Category, Product
 from pizza_store.services.products.interfaces import IProductsServiceRepo
 from pizza_store.services.products.models import (
     CategoryCreate,
@@ -8,6 +8,9 @@ from pizza_store.services.products.models import (
     CategoryDeleted,
     ProductCreate,
     ProductCreated,
+    ProductVariantCreate,
+    ProductVariantCreated,
+    ProductVariantDeleted,
 )
 
 
@@ -29,3 +32,14 @@ class ProductsService:
 
     async def create_product(self, product: ProductCreate) -> ProductCreated:
         return await self._repo.create_product(product)
+
+    async def get_products(self, category_id: uuid.UUID | None = None) -> list[Product]:
+        return await self._repo.get_products(category_id)
+
+    async def create_product_variant(
+        self, product_variant: ProductVariantCreate
+    ) -> ProductVariantCreated:
+        return await self._repo.create_product_variant(product_variant)
+
+    async def delete_product_variant(self, id: uuid.UUID) -> ProductVariantDeleted:
+        return await self._repo.delete_product_variant(id)

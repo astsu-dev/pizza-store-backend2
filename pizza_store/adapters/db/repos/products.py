@@ -2,13 +2,16 @@ import uuid
 
 import edgedb
 
-from pizza_store.entities.products import Category
+from pizza_store.entities.products import Category, Product, ProductVariant
 from pizza_store.services.products.models import (
     CategoryCreate,
     CategoryCreated,
     CategoryDeleted,
     ProductCreate,
     ProductCreated,
+    ProductVariantCreate,
+    ProductVariantCreated,
+    ProductVariantDeleted,
 )
 
 
@@ -72,3 +75,82 @@ class ProductsServiceRepo:
         )
         # TODO: raise error if already exists
         return ProductCreated(id=result.id)
+
+    async def get_products(self, category_id: uuid.UUID | None = None) -> list[Product]:
+        query = """
+        select products::Product {
+            id,
+            name,
+            category: {
+                id,
+                name
+            },
+            variants: {
+                id,
+                name,
+                weight,
+                weight_units,
+                price
+            },
+            image_url
+        }
+        """
+        if category_id is not None:
+            query = f"{query} filter .category.id = <uuid>$category_id;"
+            result = await self._client.query(query, category_id=category_id)
+        else:
+            query = f"{query};"
+            result = await self._client.query(query)
+
+        return [
+            Product(
+                id=p.id,
+                name=p.name,
+                category=Category(id=p.category.id, name=p.category.name),
+                image_url=p.image_url,
+                variants=[
+                    ProductVariant(
+                        id=v.id,
+                        name=v.name,
+                        weight=v.weight,
+                        weight_units=v.weight_units,
+                        price=v.price,
+                    )
+                    for v in p.variants
+                ],
+            )
+            for p in result
+        ]
+
+    async def create_product_variant(
+        self, product_variant: ProductVariantCreate
+    ) -> ProductVariantCreated:
+        query = """
+        with module products
+        insert ProductVariant {
+            name := <str>$name,
+            weight := <decimal>$weight,
+            weight_units := <str>$weight_units,
+            price := <decimal>$price,
+            product := (select Product filter .id = <uuid>$product_id)
+        };
+        """
+        result = await self._client.query_single(
+            query,
+            name=product_variant.name,
+            weight=product_variant.weight,
+            weight_units=product_variant.weight_units,
+            price=product_variant.price,
+            product_id=product_variant.product_id,
+        )
+        # TODO: raise error if already exists
+        return ProductVariantCreated(id=result.id)
+
+    async def delete_product_variant(self, id: uuid.UUID) -> ProductVariantDeleted:
+        query = """
+        delete products::ProductVariant
+        filter .id = <uuid>$id;
+        """
+        result = await self._client.query_single(query, id=id)
+        # TODO: raise error if not exists
+        return ProductVariantDeleted(id=result.id)

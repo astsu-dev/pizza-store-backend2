@@ -68,7 +68,9 @@ class ProductsServiceRepo:
             name := <str>$name
         };
         """
-        result = await self._client.query_single(query, id=category.id, name=category.name)
+        result = await self._client.query_single(
+            query, id=category.id, name=category.name
+        )
         # TODO: raise error if not exists
         return CategoryUpdated(id=result.id)
 

@@ -36,7 +36,9 @@ class CategoryPydantic(BaseModel):
 
 
 @router.get("")
-async def get_categories(service: ProductsService = Depends(get_products_service)) -> list[CategoryPydantic]:
+async def get_categories(
+    service: ProductsService = Depends(get_products_service),
+) -> list[CategoryPydantic]:
     result = await service.get_categories()
     return [CategoryPydantic(id=c.id, name=c.name) for c in result]
 

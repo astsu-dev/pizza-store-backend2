@@ -22,8 +22,7 @@ class CategoryDeletedPydantic(BaseModel):
     id: uuid.UUID
 
 
-class CategoryUpdatePydantic(BaseModel):
-    name: str
+CategoryUpdatePydantic = CategoryCreatePydantic
 
 
 class CategoryUpdatedPydantic(BaseModel):

@@ -11,6 +11,8 @@ from pizza_store.services.products.models import (
     CategoryUpdated,
     ProductCreate,
     ProductCreated,
+    ProductUpdate,
+    ProductUpdated,
     ProductVariantCreate,
     ProductVariantCreated,
     ProductVariantDeleted,
@@ -176,6 +178,27 @@ class ProductsServiceRepo:
                 for v in result.variants
             ],
         )
+
+    async def update_product(self, product: ProductUpdate) -> ProductUpdated:
+        query = """
+        with module products
+        update Product
+        filter .id = <uuid>$id
+        set {
+            name := <str>$name,
+            category := (select Category filter .id = <uuid>$category_id),
+            image_url := <str>$image_url
+        };
+        """
+        result = await self._client.query_single(
+            query,
+            id=product.id,
+            name=product.name,
+            category_id=product.category_id,
+            image_url=product.image_url,
+        )
+        # TODO: raise error if already exists
+        return ProductUpdated(id=result.id)
 
     async def create_product_variant(
         self, product_variant: ProductVariantCreate

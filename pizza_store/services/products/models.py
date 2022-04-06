@@ -42,6 +42,19 @@ class ProductCreated:
 
 
 @dataclass(frozen=True)
+class ProductUpdate:
+    id: uuid.UUID
+    name: str
+    category_id: uuid.UUID
+    image_url: str
+
+
+@dataclass(frozen=True)
+class ProductUpdated:
+    id: uuid.UUID
+
+
+@dataclass(frozen=True)
 class ProductVariantCreate:
     product_id: uuid.UUID
     name: str

@@ -7,7 +7,7 @@ from pydantic.networks import HttpUrl
 from pizza_store.adapters.app.dependencies import get_products_service
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.adapters.app.routes.product_variants import ProductVariantPydantic
-from pizza_store.services.products.models import ProductCreate
+from pizza_store.services.products.models import ProductCreate, ProductUpdate
 from pizza_store.services.products.service import ProductsService
 
 router = APIRouter(prefix="/products")
@@ -20,6 +20,13 @@ class ProductCreatePydantic(BaseModel):
 
 
 class ProductCreatedPydantic(BaseModel):
+    id: uuid.UUID
+
+
+ProductUpdatePydantic = ProductCreatePydantic
+
+
+class ProductUpdatedPydantic(BaseModel):
     id: uuid.UUID
 
 
@@ -95,3 +102,20 @@ async def get_product(
         ],
         image_url=result.image_url,
     )
+
+
+@router.put("/{id}")
+async def update_product(
+    id: uuid.UUID,
+    product: ProductUpdatePydantic,
+    service: ProductsService = Depends(get_products_service),
+) -> ProductUpdatedPydantic:
+    result = await service.update_product(
+        ProductUpdate(
+            id=id,
+            name=product.name,
+            category_id=product.category_id,
+            image_url=product.image_url,
+        )
+    )
+    return ProductUpdatedPydantic(id=result.id)

@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from decimal import Decimal
 
@@ -35,8 +36,9 @@ class OrderCreatedPydantic(BaseModel):
 
 
 class OrderItemPydantic(BaseModel):
+    id: uuid.UUID
     product_variant: ProductVariantWithProductPydantic
-    amount: int
+    amount: PositiveInt
     total_price: Decimal
 
 
@@ -47,6 +49,7 @@ class OrderPydantic(BaseModel):
     status: OrderStatus
     note: str
     total_price: Decimal
+    created_at: datetime.datetime
 
 
 @router.post("")
@@ -79,8 +82,12 @@ async def get_orders(
             id=o.id,
             phone=o.phone,
             status=o.status,
+            note=o.note,
+            total_price=o.total_price,
+            created_at=o.created_at,
             items=[
                 OrderItemPydantic(
+                    id=oi.id,
                     product_variant=ProductVariantWithProductPydantic(
                         id=oi.product_variant.id,
                         name=oi.product_variant.name,
@@ -102,8 +109,6 @@ async def get_orders(
                 )
                 for oi in o.items
             ],
-            note=o.note,
-            total_price=o.total_price,
         )
         for o in result
     ]
@@ -119,8 +124,12 @@ async def get_order(
         id=o.id,
         phone=o.phone,
         status=o.status,
+        note=o.note,
+        total_price=o.total_price,
+        created_at=o.created_at,
         items=[
             OrderItemPydantic(
+                id=oi.id,
                 product_variant=ProductVariantWithProductPydantic(
                     id=oi.product_variant.id,
                     name=oi.product_variant.name,
@@ -142,6 +151,4 @@ async def get_order(
             )
             for oi in o.items
         ],
-        note=o.note,
-        total_price=o.total_price,
     )

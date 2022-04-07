@@ -1,8 +1,7 @@
 import uuid
 from dataclasses import dataclass
-from decimal import Decimal
 
-from pizza_store.entities.orders import OrderItem, OrderStatus
+from pizza_store.entities.orders import OrderStatus
 
 
 @dataclass(frozen=True)
@@ -13,13 +12,7 @@ class OrderItemCreate:
 
 @dataclass(frozen=True)
 class OrderCreate:
-    """Data for creating order.
-
-    Args:
-        phone: customer phone.
-        items: list of product variant ids.
-        note: note about order.
-    """
+    """Data for creating order."""
 
     phone: str
     items: list[OrderItemCreate]
@@ -31,13 +24,17 @@ class OrderCreated:
     id: uuid.UUID
 
 
-# @dataclass(frozen=True)
-# class ServiceOrder:
-#     """Order with total price."""
+@dataclass(frozen=True)
+class OrderUpdate:
+    """Data for updating order."""
 
-#     id: uuid.UUID
-#     phone: str
-#     items: list[OrderItem]
-#     status: OrderStatus
-#     note: str
-#     total_price: Decimal
+    id: uuid.UUID
+    phone: str
+    items: list[OrderItemCreate]
+    status: OrderStatus
+    note: str
+
+
+@dataclass(frozen=True)
+class OrderUpdated:
+    id: uuid.UUID

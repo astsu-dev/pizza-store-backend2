@@ -20,38 +20,54 @@ class OrdersServiceRepo:
         self._client = client
 
     async def create_order(self, order: OrderCreate) -> OrderCreated:
-        query = """
+        client = self._client
+
+        create_order_query = """
+        insert orders::CustomerOrder {
+            phone := <str>$phone,
+            note := <str>$note
+        };
+        """
+        create_order_items_query = """
         with items := <array<tuple<
             product_variant_id: uuid,
             amount: int16
         >>><json>$items
 
-        insert orders::CustomerOrder {
-            phone := <str>$phone,
-            items := (
-                for item in array_unpack(items)
-                union (
-                    insert orders::OrderItem {
-                        product_variant := (
-                            select products::ProductVariant
-                            filter .id = item.product_variant_id
-                        ),
-                        amount := item.amount
-                    }
+        for item in array_unpack(items)
+        union (
+            insert orders::OrderItem {
+                product_variant := (
+                    select products::ProductVariant
+                    filter .id = item.product_variant_id
+                ),
+                amount := item.amount,
+                customer_order := (
+                    select orders::CustomerOrder
+                    filter .id = <uuid>$order_id
                 )
-            ),
-            note := <str>$note
-        };
+            }
+        );
         """
+
         items = [dataclasses.asdict(item) for item in order.items]
-        result = await self._client.query_single(
-            query,
-            phone=order.phone,
-            items=json.dumps(items, cls=UUIDEncoder),
-            note=order.note,
-        )
-        # TODO: raise error if already exists
-        return OrderCreated(id=result.id)
+
+        async for tx in client.transaction():
+            async with tx:
+                order_result = await tx.query_single(
+                    create_order_query,
+                    phone=order.phone,
+                    note=order.note,
+                )
+                order_id = order_result.id
+                await tx.query(
+                    create_order_items_query,
+                    order_id=order_id,
+                    items=json.dumps(items, cls=UUIDEncoder),
+                )
+                # TODO: raise error if already exists
+                return OrderCreated(id=order_id)
+        assert False, "Unreachable"
 
     async def get_orders(self, status: OrderStatus | None = None) -> list[Order]:
         query = """
@@ -59,6 +75,8 @@ class OrdersServiceRepo:
             id,
             phone,
             status,
+            note,
+            created_at,
             items: {
                 id,
                 product_variant: {
@@ -78,8 +96,7 @@ class OrdersServiceRepo:
                     }
                 },
                 amount
-            },
-            note
+            }
         }
         """
         if status is not None:
@@ -94,8 +111,11 @@ class OrdersServiceRepo:
                 id=o.id,
                 phone=o.phone,
                 status=cast(OrderStatus, str(o.status)),
+                note=o.note,
+                created_at=o.created_at,
                 items=[
                     OrderItem(
+                        id=oi.id,
                         product_variant=ProductVariantWithProduct(
                             id=oi.product_variant.id,
                             name=oi.product_variant.name,
@@ -116,7 +136,6 @@ class OrdersServiceRepo:
                     )
                     for oi in o.items
                 ],
-                note=o.note,
             )
             for o in result
         ]
@@ -127,6 +146,8 @@ class OrdersServiceRepo:
             id,
             phone,
             status,
+            note,
+            created_at,
             items: {
                 id,
                 product_variant: {
@@ -147,17 +168,19 @@ class OrdersServiceRepo:
                 },
                 amount
             },
-            note
         } filter .id = <uuid>$id;
         """
         o = await self._client.query_single(query, id=id)
-        # TODO: raise errir if not exists
+        # TODO: raise error if not exists
         return Order(
             id=o.id,
             phone=o.phone,
             status=cast(OrderStatus, str(o.status)),
+            note=o.note,
+            created_at=o.created_at,
             items=[
                 OrderItem(
+                    id=oi.id,
                     product_variant=ProductVariantWithProduct(
                         id=oi.product_variant.id,
                         name=oi.product_variant.name,
@@ -178,5 +201,4 @@ class OrdersServiceRepo:
                 )
                 for oi in o.items
             ],
-            note=o.note,
         )

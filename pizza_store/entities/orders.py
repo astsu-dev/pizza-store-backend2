@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
-from functools import lru_cache
+from functools import cached_property
 from typing import Literal
 
 from pizza_store.entities.products import ProductVariantWithProduct
@@ -23,8 +23,7 @@ class OrderItem:
     product_variant: ProductVariantWithProduct
     amount: int
 
-    @property
-    @lru_cache
+    @cached_property
     def total_price(self) -> Decimal:
         return self.product_variant.price * self.amount
 
@@ -49,8 +48,7 @@ class Order:
     status: OrderStatus
     note: str
 
-    @property
-    @lru_cache
+    @cached_property
     def total_price(self) -> Decimal:
-        prices = (i.total_price for i in self.items)
+        prices = [i.total_price for i in self.items]
         return sum(prices, Decimal(0))

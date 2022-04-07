@@ -12,8 +12,8 @@ class OrdersService:
     async def create_order(self, order: OrderCreate) -> OrderCreated:
         return await self._repo.create_order(order)
 
-    # async def get_orders(self, status: OrderStatus | None = None) -> list[Order]:
-    #     return await self._repo.get_orders(status)
+    async def get_orders(self, status: OrderStatus | None = None) -> list[Order]:
+        return await self._repo.get_orders(status)
 
-    # async def get_order(self, id: uuid.UUID) -> Order:
-    #     return await self._repo.get_order(id)
+    async def get_order(self, id: uuid.UUID) -> Order:
+        return await self._repo.get_order(id)

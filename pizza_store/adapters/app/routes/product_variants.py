@@ -3,8 +3,10 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from pydantic.networks import HttpUrl
 
 from pizza_store.adapters.app.dependencies import get_products_service
+from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.services.products.models import (
     ProductVariantCreate,
     ProductVariantUpdate,
@@ -42,6 +44,22 @@ class ProductVariantPydantic(BaseModel):
     weight: Decimal
     weight_units: str
     price: Decimal
+
+
+class ProductWithoutVariantsPydantic(BaseModel):
+    id: uuid.UUID
+    name: str
+    category: CategoryPydantic
+    image_url: str
+
+
+class ProductVariantWithProductPydantic(BaseModel):
+    id: uuid.UUID
+    name: str
+    weight: Decimal
+    weight_units: str
+    price: Decimal
+    product: ProductWithoutVariantsPydantic
 
 
 @router.post("")

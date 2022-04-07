@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from decimal import Decimal
 
@@ -15,6 +16,7 @@ def test_order() -> None:
         phone="+380991231212",
         items=[
             OrderItem(
+                id=uuid.UUID("48f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                 product_variant=ProductVariantWithProduct(
                     id=uuid.UUID("35f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                     name="Small",
@@ -36,6 +38,7 @@ def test_order() -> None:
         ],
         status="UNCOMPLETED",
         note="",
+        created_at=datetime.datetime(2022, 3, 2, 19, 15),
     )
     assert order.total_price == Decimal("5")
 
@@ -44,6 +47,7 @@ def test_order() -> None:
         phone="+380991231212",
         items=[
             OrderItem(
+                id=uuid.UUID("48f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                 product_variant=ProductVariantWithProduct(
                     id=uuid.UUID("35f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                     name="Small",
@@ -63,6 +67,7 @@ def test_order() -> None:
                 amount=2,
             ),
             OrderItem(
+                id=uuid.UUID("48f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                 product_variant=ProductVariantWithProduct(
                     id=uuid.UUID("35f3b5cd-a8b9-441d-aadb-c5bda6498230"),
                     name="Small",
@@ -84,5 +89,6 @@ def test_order() -> None:
         ],
         status="UNCOMPLETED",
         note="",
+        created_at=datetime.datetime(2022, 3, 2, 19, 15),
     )
     assert order.total_price == Decimal("8.7")

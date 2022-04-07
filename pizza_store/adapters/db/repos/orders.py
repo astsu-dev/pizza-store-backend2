@@ -11,7 +11,12 @@ from pizza_store.entities.products import (
     ProductVariantWithProduct,
     ProductWithoutVariants,
 )
-from pizza_store.services.orders.models import OrderCreate, OrderCreated
+from pizza_store.services.orders.models import (
+    OrderCreate,
+    OrderCreated,
+    OrderUpdate,
+    OrderUpdated,
+)
 from pizza_store.utils import UUIDEncoder
 
 
@@ -202,3 +207,56 @@ class OrdersServiceRepo:
                 for oi in o.items
             ],
         )
+
+    async def update_order(self, order: OrderUpdate) -> OrderUpdated:
+        delete_old_order_items_query = """
+        delete orders::OrderItem
+        filter .customer_order.id = <uuid>$order_id;
+        """
+        update_order_query = """
+        update orders::CustomerOrder
+        filter .id = <uuid>$id
+        set {
+            phone := <str>$phone,
+            status := <orders::OrderStatus>$status,
+            note := <str>$note,
+        };
+        """
+        create_new_order_items_query = """
+        with items := <array<tuple<
+            product_variant_id: uuid,
+            amount: int16
+        >>><json>$items
+        for item in array_unpack(items) union (
+            insert orders::OrderItem {
+                product_variant := (
+                    select products::ProductVariant
+                    filter .id = item.product_variant_id
+                ),
+                amount := item.amount,
+                customer_order := (
+                    select orders::CustomerOrder
+                    filter .id = <uuid>$order_id
+                )
+            }
+        );
+        """
+
+        async for tx in self._client.transaction():
+            async with tx:
+                order_id = order.id
+                items = [dataclasses.asdict(item) for item in order.items]
+                items_json = json.dumps(items, cls=UUIDEncoder)
+                await tx.query(delete_old_order_items_query, order_id=order_id)
+                await tx.query(
+                    update_order_query,
+                    id=order_id,
+                    phone=order.phone,
+                    status=order.status,
+                    note=order.note,
+                )
+                await tx.query(
+                    create_new_order_items_query, order_id=order_id, items=items_json
+                )
+                return OrderUpdated(id=order_id)
+        assert False, "Unreachable"

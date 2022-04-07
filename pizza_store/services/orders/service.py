@@ -2,7 +2,12 @@ import uuid
 
 from pizza_store.entities.orders import Order, OrderStatus
 from pizza_store.services.orders.interfaces import IOrdersServiceRepo
-from pizza_store.services.orders.models import OrderCreate, OrderCreated
+from pizza_store.services.orders.models import (
+    OrderCreate,
+    OrderCreated,
+    OrderUpdate,
+    OrderUpdated,
+)
 
 
 class OrdersService:
@@ -17,3 +22,6 @@ class OrdersService:
 
     async def get_order(self, id: uuid.UUID) -> Order:
         return await self._repo.get_order(id)
+
+    async def update_order(self, order: OrderUpdate) -> OrderUpdated:
+        return await self._repo.update_order(order)

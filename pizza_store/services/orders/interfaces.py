@@ -2,7 +2,12 @@ import uuid
 from typing import Protocol
 
 from pizza_store.entities.orders import Order, OrderStatus
-from pizza_store.services.orders.models import OrderCreate, OrderCreated
+from pizza_store.services.orders.models import (
+    OrderCreate,
+    OrderCreated,
+    OrderUpdate,
+    OrderUpdated,
+)
 
 
 class IOrdersServiceRepo(Protocol):
@@ -13,4 +18,7 @@ class IOrdersServiceRepo(Protocol):
         ...
 
     async def get_order(self, id: uuid.UUID) -> Order:
+        ...
+
+    async def update_order(self, order: OrderUpdate) -> OrderUpdated:
         ...

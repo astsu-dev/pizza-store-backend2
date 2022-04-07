@@ -14,7 +14,7 @@ from pizza_store.adapters.app.routes.product_variants import (
     ProductWithoutVariantsPydantic,
 )
 from pizza_store.entities.orders import OrderStatus
-from pizza_store.services.orders.models import OrderCreate, OrderItemCreate
+from pizza_store.services.orders.models import OrderCreate, OrderItemCreate, OrderUpdate
 from pizza_store.services.orders.service import OrdersService
 
 router = APIRouter(prefix="/orders")
@@ -40,6 +40,17 @@ class OrderItemPydantic(BaseModel):
     product_variant: ProductVariantWithProductPydantic
     amount: PositiveInt
     total_price: Decimal
+
+
+class OrderUpdatePydantic(BaseModel):
+    phone: str
+    items: list[OrderItemCreatePydantic]
+    status: OrderStatus
+    note: str
+
+
+class OrderUpdatedPydantic(BaseModel):
+    id: uuid.UUID
 
 
 class OrderPydantic(BaseModel):
@@ -152,3 +163,26 @@ async def get_order(
             for oi in o.items
         ],
     )
+
+
+@router.put("/{id}")
+async def update_order(
+    id: uuid.UUID,
+    order: OrderUpdatePydantic,
+    service: OrdersService = Depends(get_orders_service),
+) -> OrderUpdatedPydantic:
+    result = await service.update_order(
+        OrderUpdate(
+            id=id,
+            phone=order.phone,
+            status=order.status,
+            note=order.note,
+            items=[
+                OrderItemCreate(
+                    product_variant_id=item.product_variant_id, amount=item.amount
+                )
+                for item in order.items
+            ],
+        )
+    )
+    return OrderUpdatedPydantic(id=result.id)

@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
@@ -20,6 +21,7 @@ class OrderItem:
         amount: amount of product.
     """
 
+    id: uuid.UUID
     product_variant: ProductVariantWithProduct
     amount: int
 
@@ -47,6 +49,7 @@ class Order:
     items: list[OrderItem]
     status: OrderStatus
     note: str
+    created_at: datetime.datetime
 
     @cached_property
     def total_price(self) -> Decimal:

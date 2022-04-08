@@ -9,4 +9,5 @@ dbshell:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev
 dbtypes:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev list types
-
+dev:
+	uvicorn --host 127.0.0.1 --port 8000 --reload --factory "pizza_store.adapters.app.app:create_app" 

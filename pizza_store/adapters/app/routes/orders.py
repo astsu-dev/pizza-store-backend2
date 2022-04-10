@@ -7,13 +7,14 @@ from fastapi.routing import APIRouter
 from pydantic.main import BaseModel
 from pydantic.types import PositiveInt
 
-from pizza_store.adapters.app.dependencies import get_orders_service
+from pizza_store.adapters.app.dependencies import get_current_user, get_orders_service
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.adapters.app.routes.product_variants import (
     ProductVariantWithProductPydantic,
     ProductWithoutVariantsPydantic,
 )
 from pizza_store.entities.orders import OrderStatus
+from pizza_store.services.auth.models import UserTokenData
 from pizza_store.services.orders.models import OrderCreate, OrderItemCreate, OrderUpdate
 from pizza_store.services.orders.service import OrdersService
 
@@ -65,7 +66,8 @@ class OrderPydantic(BaseModel):
 
 @router.post("")
 async def create_order(
-    order: OrderCreatePydantic, service: OrdersService = Depends(get_orders_service)
+    order: OrderCreatePydantic,
+    service: OrdersService = Depends(get_orders_service),
 ) -> OrderCreatedPydantic:
     result = await service.create_order(
         OrderCreate(
@@ -86,6 +88,7 @@ async def create_order(
 async def get_orders(
     status: OrderStatus | None = None,
     service: OrdersService = Depends(get_orders_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> list[OrderPydantic]:
     result = await service.get_orders(status)
     return [
@@ -129,6 +132,7 @@ async def get_orders(
 async def get_order(
     id: uuid.UUID,
     service: OrdersService = Depends(get_orders_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> OrderPydantic:
     o = await service.get_order(id)
     return OrderPydantic(
@@ -170,6 +174,7 @@ async def update_order(
     id: uuid.UUID,
     order: OrderUpdatePydantic,
     service: OrdersService = Depends(get_orders_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> OrderUpdatedPydantic:
     result = await service.update_order(
         OrderUpdate(

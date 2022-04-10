@@ -3,7 +3,8 @@ import uuid
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from pizza_store.adapters.app.dependencies import get_products_service
+from pizza_store.adapters.app.dependencies import get_current_user, get_products_service
+from pizza_store.services.auth.models import UserTokenData
 from pizza_store.services.products.models import CategoryCreate, CategoryUpdate
 from pizza_store.services.products.service import ProductsService
 
@@ -46,6 +47,7 @@ async def get_categories(
 async def create_category(
     category: CategoryCreatePydantic,
     service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryCreatedPydantic:
     result = await service.create_category(CategoryCreate(name=category.name))
     return CategoryCreatedPydantic(id=result.id)
@@ -61,7 +63,9 @@ async def get_category(
 
 @router.delete("/{id}")
 async def delete_category(
-    id: uuid.UUID, service: ProductsService = Depends(get_products_service)
+    id: uuid.UUID,
+    service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryDeletedPydantic:
     result = await service.delete_category(id)
     return CategoryDeletedPydantic(id=result.id)
@@ -72,6 +76,7 @@ async def update_category(
     id: uuid.UUID,
     category: CategoryCreatePydantic,
     service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryUpdatedPydantic:
     result = await service.update_category(CategoryUpdate(id=id, name=category.name))
     return CategoryUpdatedPydantic(id=result.id)

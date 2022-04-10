@@ -4,7 +4,11 @@ import uuid
 import bcrypt
 import jwt
 
-from pizza_store.services.auth.exceptions import InvalidCredentialsError
+from pizza_store.services.auth.exceptions import (
+    AccessForbiddenError,
+    InvalidAccessToken,
+    InvalidCredentialsError,
+)
 from pizza_store.services.auth.interfaces import IAuthServiceRepo
 from pizza_store.services.auth.models import (
     JWTConfig,
@@ -49,6 +53,18 @@ class AuthService:
         token = jwt.encode(data, config.secret, algorithm=config.algorithm)
         return token
 
+    @classmethod
+    def decode_access_token(cls, token: str, config: JWTConfig) -> UserTokenData:
+        """Decodes access token and returns user from it."""
+
+        try:
+            token_data = jwt.decode(token, config.secret, algorithms=[config.algorithm])
+        except jwt.PyJWTError:
+            raise InvalidAccessToken
+        return UserTokenData(
+            id=token_data["user"]["id"], is_admin=token_data["user"]["is_admin"]
+        )
+
     async def register_user(self, user: UserCreate) -> UserToken:
         """Registers a user.
 
@@ -78,6 +94,17 @@ class AuthService:
             raise InvalidCredentialsError
 
         return self._create_user_token(user_in_repo.id, user_in_repo.is_admin)
+
+    def get_user_from_token(self, token: str, is_admin_required: bool) -> UserTokenData:
+        """Decodes token and returns user from it.
+
+        If `is_admin_required` is True check if user is admin.
+        """
+
+        user_token_data = self.decode_access_token(token, self._jwt_config)
+        if is_admin_required and not user_token_data.is_admin:
+            raise AccessForbiddenError
+        return user_token_data
 
     def _create_user_token(self, user_id: uuid.UUID, is_admin: bool) -> UserToken:
         timestamp = int(datetime.datetime.now().timestamp())

@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from pydantic.networks import HttpUrl
 
-from pizza_store.adapters.app.dependencies import get_products_service
+from pizza_store.adapters.app.dependencies import get_current_user, get_products_service
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.adapters.app.routes.product_variants import ProductVariantPydantic
+from pizza_store.services.auth.models import UserTokenData
 from pizza_store.services.products.models import ProductCreate, ProductUpdate
 from pizza_store.services.products.service import ProductsService
 
@@ -46,6 +47,7 @@ class ProductPydantic(BaseModel):
 async def create_product(
     product: ProductCreatePydantic,
     service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductCreatedPydantic:
     result = await service.create_product(
         ProductCreate(
@@ -112,6 +114,7 @@ async def get_product(
 async def delete_product(
     id: uuid.UUID,
     service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductDeletedPydantic:
     result = await service.delete_product(id)
     return ProductDeletedPydantic(id=result.id)
@@ -122,6 +125,7 @@ async def update_product(
     id: uuid.UUID,
     product: ProductUpdatePydantic,
     service: ProductsService = Depends(get_products_service),
+    _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductUpdatedPydantic:
     result = await service.update_product(
         ProductUpdate(

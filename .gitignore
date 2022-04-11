@@ -1,1 +1,8 @@
-__pycache__
+__pycache__/
+
+.env
+
+dbschema/dump/
+dbschema/migrations/
+
+todo.md

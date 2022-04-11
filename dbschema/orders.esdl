@@ -13,6 +13,7 @@ module orders {
 
     type CustomerOrder {
         required property phone -> str;
+        required property address -> str;
         required property status -> OrderStatus {
             default := OrderStatus.UNCOMPLETED;
         }

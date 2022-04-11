@@ -17,6 +17,7 @@ class OrderCreate:
     phone: str
     items: list[OrderItemCreate]
     note: str
+    address: str
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ class OrderUpdate:
     items: list[OrderItemCreate]
     status: OrderStatus
     note: str
+    address: str
 
 
 @dataclass(frozen=True)

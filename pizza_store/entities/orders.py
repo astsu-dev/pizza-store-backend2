@@ -41,6 +41,7 @@ class Order:
         phone: customer phone.
         items: products to order.
         status: order status.
+        address: address to deliver.
         note: customer note.
     """
 
@@ -49,6 +50,7 @@ class Order:
     items: list[OrderItem]
     status: OrderStatus
     note: str
+    address: str
     created_at: datetime.datetime
 
     @cached_property

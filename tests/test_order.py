@@ -14,6 +14,7 @@ def test_order() -> None:
     order = Order(
         id=uuid.UUID("f7240c84-f12f-4bce-bbe4-76c3105cf6a6"),
         phone="+380991231212",
+        address="Baker street 221 B",
         items=[
             OrderItem(
                 id=uuid.UUID("48f3b5cd-a8b9-441d-aadb-c5bda6498230"),
@@ -45,6 +46,7 @@ def test_order() -> None:
     order = Order(
         id=uuid.UUID("f7240c84-f12f-4bce-bbe4-76c3105cf6a6"),
         phone="+380991231212",
+        address="Baker street 221 B",
         items=[
             OrderItem(
                 id=uuid.UUID("48f3b5cd-a8b9-441d-aadb-c5bda6498230"),

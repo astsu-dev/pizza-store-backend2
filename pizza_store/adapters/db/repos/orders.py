@@ -30,7 +30,8 @@ class OrdersServiceRepo:
         create_order_query = """
         insert orders::CustomerOrder {
             phone := <str>$phone,
-            note := <str>$note
+            note := <str>$note,
+            address := <str>$address
         };
         """
         create_order_items_query = """
@@ -63,6 +64,7 @@ class OrdersServiceRepo:
                     create_order_query,
                     phone=order.phone,
                     note=order.note,
+                    address=order.address,
                 )
                 order_id = order_result.id
                 await tx.query(
@@ -81,6 +83,7 @@ class OrdersServiceRepo:
             phone,
             status,
             note,
+            address,
             created_at,
             items: {
                 id,
@@ -117,6 +120,7 @@ class OrdersServiceRepo:
                 phone=o.phone,
                 status=cast(OrderStatus, str(o.status)),
                 note=o.note,
+                address=o.address,
                 created_at=o.created_at,
                 items=[
                     OrderItem(
@@ -152,6 +156,7 @@ class OrdersServiceRepo:
             phone,
             status,
             note,
+            address,
             created_at,
             items: {
                 id,
@@ -182,6 +187,7 @@ class OrdersServiceRepo:
             phone=o.phone,
             status=cast(OrderStatus, str(o.status)),
             note=o.note,
+            address=o.address,
             created_at=o.created_at,
             items=[
                 OrderItem(
@@ -220,6 +226,7 @@ class OrdersServiceRepo:
             phone := <str>$phone,
             status := <orders::OrderStatus>$status,
             note := <str>$note,
+            address := <str>$address
         };
         """
         create_new_order_items_query = """
@@ -254,6 +261,7 @@ class OrdersServiceRepo:
                     phone=order.phone,
                     status=order.status,
                     note=order.note,
+                    address=order.address,
                 )
                 await tx.query(
                     create_new_order_items_query, order_id=order_id, items=items_json

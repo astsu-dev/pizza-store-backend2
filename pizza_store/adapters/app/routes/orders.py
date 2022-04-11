@@ -29,6 +29,7 @@ class OrderItemCreatePydantic(BaseModel):
 class OrderCreatePydantic(BaseModel):
     phone: str
     items: list[OrderItemCreatePydantic]
+    address: str
     note: str = ""
 
 
@@ -48,6 +49,7 @@ class OrderUpdatePydantic(BaseModel):
     items: list[OrderItemCreatePydantic]
     status: OrderStatus
     note: str
+    address: str
 
 
 class OrderUpdatedPydantic(BaseModel):
@@ -60,6 +62,7 @@ class OrderPydantic(BaseModel):
     items: list[OrderItemPydantic]
     status: OrderStatus
     note: str
+    address: str
     total_price: Decimal
     created_at: datetime.datetime
 
@@ -79,6 +82,7 @@ async def create_order(
                 for item in order.items
             ],
             note=order.note,
+            address=order.address,
         )
     )
     return OrderCreatedPydantic(id=result.id)
@@ -97,6 +101,7 @@ async def get_orders(
             phone=o.phone,
             status=o.status,
             note=o.note,
+            address=o.address,
             total_price=o.total_price,
             created_at=o.created_at,
             items=[
@@ -140,6 +145,7 @@ async def get_order(
         phone=o.phone,
         status=o.status,
         note=o.note,
+        address=o.address,
         total_price=o.total_price,
         created_at=o.created_at,
         items=[
@@ -182,6 +188,7 @@ async def update_order(
             phone=order.phone,
             status=order.status,
             note=order.note,
+            address=order.address,
             items=[
                 OrderItemCreate(
                     product_variant_id=item.product_variant_id, amount=item.amount

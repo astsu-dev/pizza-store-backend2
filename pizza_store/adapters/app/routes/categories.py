@@ -1,10 +1,14 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from pizza_store.adapters.app.dependencies import get_current_user, get_products_service
 from pizza_store.services.auth.models import UserTokenData
+from pizza_store.services.products.exceptions import (
+    CategoryAlreadyExistsError,
+    CategoryNotFoundError,
+)
 from pizza_store.services.products.models import CategoryCreate, CategoryUpdate
 from pizza_store.services.products.service import ProductsService
 
@@ -49,7 +53,12 @@ async def create_category(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryCreatedPydantic:
-    result = await service.create_category(CategoryCreate(name=category.name))
+    try:
+        result = await service.create_category(CategoryCreate(name=category.name))
+    except CategoryAlreadyExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Category already exists."
+        )
     return CategoryCreatedPydantic(id=result.id)
 
 
@@ -57,7 +66,12 @@ async def create_category(
 async def get_category(
     id: uuid.UUID, service: ProductsService = Depends(get_products_service)
 ) -> CategoryPydantic:
-    result = await service.get_category(id)
+    try:
+        result = await service.get_category(id)
+    except CategoryNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category does not exist."
+        )
     return CategoryPydantic(id=result.id, name=result.name)
 
 
@@ -67,7 +81,12 @@ async def delete_category(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryDeletedPydantic:
-    result = await service.delete_category(id)
+    try:
+        result = await service.delete_category(id)
+    except CategoryNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category does not exist."
+        )
     return CategoryDeletedPydantic(id=result.id)
 
 
@@ -78,5 +97,12 @@ async def update_category(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> CategoryUpdatedPydantic:
-    result = await service.update_category(CategoryUpdate(id=id, name=category.name))
+    try:
+        result = await service.update_category(
+            CategoryUpdate(id=id, name=category.name)
+        )
+    except CategoryNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category does not exist."
+        )
     return CategoryUpdatedPydantic(id=result.id)

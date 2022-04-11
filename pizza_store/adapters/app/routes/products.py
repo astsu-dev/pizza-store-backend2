@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from pydantic.networks import HttpUrl
 
@@ -8,6 +8,11 @@ from pizza_store.adapters.app.dependencies import get_current_user, get_products
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.adapters.app.routes.product_variants import ProductVariantPydantic
 from pizza_store.services.auth.models import UserTokenData
+from pizza_store.services.products.exceptions import (
+    CategoryNotFoundError,
+    ProductAlreadyExistsError,
+    ProductNotFoundError,
+)
 from pizza_store.services.products.models import ProductCreate, ProductUpdate
 from pizza_store.services.products.service import ProductsService
 
@@ -49,13 +54,23 @@ async def create_product(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductCreatedPydantic:
-    result = await service.create_product(
-        ProductCreate(
-            name=product.name,
-            category_id=product.category_id,
-            image_url=product.image_url,
+    try:
+        result = await service.create_product(
+            ProductCreate(
+                name=product.name,
+                category_id=product.category_id,
+                image_url=product.image_url,
+            )
         )
-    )
+    except ProductAlreadyExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Product already exists."
+        )
+    except CategoryNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category does not exist."
+        )
+
     return ProductCreatedPydantic(id=result.id)
 
 
@@ -91,7 +106,13 @@ async def get_product(
     id: uuid.UUID,
     service: ProductsService = Depends(get_products_service),
 ) -> ProductPydantic:
-    result = await service.get_product(id)
+    try:
+        result = await service.get_product(id)
+    except ProductNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist."
+        )
+
     return ProductPydantic(
         id=result.id,
         name=result.name,
@@ -116,7 +137,12 @@ async def delete_product(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductDeletedPydantic:
-    result = await service.delete_product(id)
+    try:
+        result = await service.delete_product(id)
+    except ProductNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist."
+        )
     return ProductDeletedPydantic(id=result.id)
 
 
@@ -127,12 +153,23 @@ async def update_product(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductUpdatedPydantic:
-    result = await service.update_product(
-        ProductUpdate(
-            id=id,
-            name=product.name,
-            category_id=product.category_id,
-            image_url=product.image_url,
+    try:
+        result = await service.update_product(
+            ProductUpdate(
+                id=id,
+                name=product.name,
+                category_id=product.category_id,
+                image_url=product.image_url,
+            )
         )
-    )
+    except ProductAlreadyExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Product with that name already exists.",
+        )
+    except CategoryNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Category does not exist."
+        )
+
     return ProductUpdatedPydantic(id=result.id)

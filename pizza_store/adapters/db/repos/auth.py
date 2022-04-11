@@ -1,5 +1,9 @@
 import edgedb
 
+from pizza_store.services.auth.exceptions import (
+    UserAlreadyExistsError,
+    UserNotFoundError,
+)
 from pizza_store.services.auth.models import User, UserCreated, UserInRepoCreate
 
 
@@ -15,13 +19,15 @@ class AuthServiceRepo:
             is_admin := <bool>$is_admin
         };
         """
-        result = await self._client.query_single(
-            query,
-            username=user.username,
-            password_hash=user.password_hash,
-            is_admin=user.is_admin,
-        )
-        # TODO: raise error if alrady exists
+        try:
+            result = await self._client.query_single(
+                query,
+                username=user.username,
+                password_hash=user.password_hash,
+                is_admin=user.is_admin,
+            )
+        except edgedb.errors.ConstraintViolationError:
+            raise UserAlreadyExistsError
         return UserCreated(id=result.id)
 
     async def get_user(self, username: str) -> User:
@@ -34,7 +40,8 @@ class AuthServiceRepo:
         } filter .username = <str>$username;
         """
         result = await self._client.query_single(query, username=username)
-        # TODO: raise error if not exists
+        if result is None:
+            raise UserNotFoundError
         return User(
             id=result.id,
             username=result.username,

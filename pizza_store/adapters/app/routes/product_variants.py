@@ -1,13 +1,16 @@
 import uuid
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from pydantic.networks import HttpUrl
 
 from pizza_store.adapters.app.dependencies import get_current_user, get_products_service
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
 from pizza_store.services.auth.models import UserTokenData
+from pizza_store.services.products.exceptions import (
+    ProductNotFoundError,
+    ProductVariantNotFoundError,
+)
 from pizza_store.services.products.models import (
     ProductVariantCreate,
     ProductVariantUpdate,
@@ -70,15 +73,20 @@ async def create_product_variant(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductVariantCreatedPydantic:
-    result = await service.create_product_variant(
-        ProductVariantCreate(
-            product_id=product_id,
-            name=product_variant.name,
-            weight=product_variant.weight,
-            weight_units=product_variant.weight_units,
-            price=product_variant.price,
+    try:
+        result = await service.create_product_variant(
+            ProductVariantCreate(
+                product_id=product_id,
+                name=product_variant.name,
+                weight=product_variant.weight,
+                weight_units=product_variant.weight_units,
+                price=product_variant.price,
+            )
         )
-    )
+    except ProductNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist."
+        )
     return ProductVariantCreatedPydantic(id=result.id)
 
 
@@ -88,7 +96,13 @@ async def delete_product_variant(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductVariantDeletedPydantic:
-    result = await service.delete_product_variant(id)
+    try:
+        result = await service.delete_product_variant(id)
+    except ProductVariantNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product variant does not exist.",
+        )
     return ProductVariantDeletedPydantic(id=result.id)
 
 
@@ -99,13 +113,19 @@ async def update_product_variant(
     service: ProductsService = Depends(get_products_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> ProductVariantUpdatedPydantic:
-    result = await service.update_product_variant(
-        ProductVariantUpdate(
-            id=id,
-            name=product_variant.name,
-            weight=product_variant.weight,
-            weight_units=product_variant.weight_units,
-            price=product_variant.price,
+    try:
+        result = await service.update_product_variant(
+            ProductVariantUpdate(
+                id=id,
+                name=product_variant.name,
+                weight=product_variant.weight,
+                weight_units=product_variant.weight_units,
+                price=product_variant.price,
+            )
         )
-    )
+    except ProductVariantNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product variant does not exist.",
+        )
     return ProductVariantUpdatedPydantic(id=result.id)

@@ -8,6 +8,7 @@ from pizza_store.services.auth.exceptions import (
     AccessForbiddenError,
     InvalidAccessToken,
     InvalidCredentialsError,
+    UserNotFoundError,
 )
 from pizza_store.services.auth.interfaces import IAuthServiceRepo
 from pizza_store.services.auth.models import (
@@ -77,7 +78,6 @@ class AuthService:
         user_in_repo = await self._repo.create_user(
             UserInRepoCreate(user.username, password_hash, is_admin)
         )
-        # TODO: raise error if user already exists
 
         return self._create_user_token(user_in_repo.id, is_admin)
 
@@ -88,7 +88,10 @@ class AuthService:
             Token
         """
 
-        user_in_repo = await self._repo.get_user(user.username)
+        try:
+            user_in_repo = await self._repo.get_user(user.username)
+        except UserNotFoundError:
+            raise InvalidCredentialsError
 
         if not self.verify_password(user.password, user_in_repo.password_hash):
             raise InvalidCredentialsError

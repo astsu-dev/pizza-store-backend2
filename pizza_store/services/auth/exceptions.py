@@ -8,3 +8,11 @@ class AccessForbiddenError(Exception):
 
 class InvalidAccessToken(Exception):
     """Will be raised if access token is not valid."""
+
+
+class UserNotFoundError(Exception):
+    """Will be raised if user does not exist."""
+
+
+class UserAlreadyExistsError(Exception):
+    """Will be raised if user already exists."""

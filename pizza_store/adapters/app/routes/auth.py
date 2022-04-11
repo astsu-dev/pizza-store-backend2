@@ -3,7 +3,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic.main import BaseModel
 
 from pizza_store.adapters.app.dependencies import get_auth_service
-from pizza_store.services.auth.exceptions import InvalidCredentialsError
+from pizza_store.services.auth.exceptions import (
+    InvalidCredentialsError,
+    UserAlreadyExistsError,
+)
 from pizza_store.services.auth.models import UserCreate, UserLogIn
 from pizza_store.services.auth.service import AuthService
 
@@ -35,8 +38,7 @@ async def register_user(
         token = await service.register_user(
             UserCreate(username=user.username, password=user.password)
         )
-    except InvalidCredentialsError:
-        # TODO: handle valid exception
+    except UserAlreadyExistsError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="User already exists."
         )

@@ -2,10 +2,12 @@ import datetime
 import uuid
 from decimal import Decimal
 
+from fastapi.exceptions import HTTPException
 from fastapi.param_functions import Depends
 from fastapi.routing import APIRouter
 from pydantic.main import BaseModel
 from pydantic.types import PositiveInt
+from starlette import status
 
 from pizza_store.adapters.app.dependencies import get_current_user, get_orders_service
 from pizza_store.adapters.app.routes.categories import CategoryPydantic
@@ -15,8 +17,10 @@ from pizza_store.adapters.app.routes.product_variants import (
 )
 from pizza_store.entities.orders import OrderStatus
 from pizza_store.services.auth.models import UserTokenData
+from pizza_store.services.orders.exceptions import OrderNotFoundError
 from pizza_store.services.orders.models import OrderCreate, OrderItemCreate, OrderUpdate
 from pizza_store.services.orders.service import OrdersService
+from pizza_store.services.products.exceptions import ProductVariantNotFoundError
 
 router = APIRouter(prefix="/orders")
 
@@ -72,19 +76,25 @@ async def create_order(
     order: OrderCreatePydantic,
     service: OrdersService = Depends(get_orders_service),
 ) -> OrderCreatedPydantic:
-    result = await service.create_order(
-        OrderCreate(
-            phone=order.phone,
-            items=[
-                OrderItemCreate(
-                    product_variant_id=item.product_variant_id, amount=item.amount
-                )
-                for item in order.items
-            ],
-            note=order.note,
-            address=order.address,
+    try:
+        result = await service.create_order(
+            OrderCreate(
+                phone=order.phone,
+                items=[
+                    OrderItemCreate(
+                        product_variant_id=item.product_variant_id, amount=item.amount
+                    )
+                    for item in order.items
+                ],
+                note=order.note,
+                address=order.address,
+            )
         )
-    )
+    except ProductVariantNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product variant does not exist.",
+        )
     return OrderCreatedPydantic(id=result.id)
 
 
@@ -139,7 +149,12 @@ async def get_order(
     service: OrdersService = Depends(get_orders_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> OrderPydantic:
-    o = await service.get_order(id)
+    try:
+        o = await service.get_order(id)
+    except OrderNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Order does not exist."
+        )
     return OrderPydantic(
         id=o.id,
         phone=o.phone,
@@ -182,19 +197,30 @@ async def update_order(
     service: OrdersService = Depends(get_orders_service),
     _: UserTokenData = Depends(get_current_user(is_admin_required=True)),
 ) -> OrderUpdatedPydantic:
-    result = await service.update_order(
-        OrderUpdate(
-            id=id,
-            phone=order.phone,
-            status=order.status,
-            note=order.note,
-            address=order.address,
-            items=[
-                OrderItemCreate(
-                    product_variant_id=item.product_variant_id, amount=item.amount
-                )
-                for item in order.items
-            ],
+    try:
+        result = await service.update_order(
+            OrderUpdate(
+                id=id,
+                phone=order.phone,
+                status=order.status,
+                note=order.note,
+                address=order.address,
+                items=[
+                    OrderItemCreate(
+                        product_variant_id=item.product_variant_id, amount=item.amount
+                    )
+                    for item in order.items
+                ],
+            )
         )
-    )
+    except OrderNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Order does not exist."
+        )
+    except ProductVariantNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product variant does not exist.",
+        )
+
     return OrderUpdatedPydantic(id=result.id)

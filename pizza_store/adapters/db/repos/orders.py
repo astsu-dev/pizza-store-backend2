@@ -11,12 +11,14 @@ from pizza_store.entities.products import (
     ProductVariantWithProduct,
     ProductWithoutVariants,
 )
+from pizza_store.services.orders.exceptions import OrderNotFoundError
 from pizza_store.services.orders.models import (
     OrderCreate,
     OrderCreated,
     OrderUpdate,
     OrderUpdated,
 )
+from pizza_store.services.products.exceptions import ProductVariantNotFoundError
 from pizza_store.utils import UUIDEncoder
 
 
@@ -67,12 +69,19 @@ class OrdersServiceRepo:
                     address=order.address,
                 )
                 order_id = order_result.id
-                await tx.query(
-                    create_order_items_query,
-                    order_id=order_id,
-                    items=json.dumps(items, cls=UUIDEncoder),
-                )
-                # TODO: raise error if already exists
+                try:
+                    await tx.query(
+                        create_order_items_query,
+                        order_id=order_id,
+                        items=json.dumps(items, cls=UUIDEncoder),
+                    )
+                except edgedb.errors.MissingRequiredError as e:
+                    if (
+                        "missing value for required link 'product_variant'"
+                        in e.get_server_context()
+                    ):
+                        raise ProductVariantNotFoundError
+                    raise
                 return OrderCreated(id=order_id)
         assert False, "Unreachable"
 
@@ -181,7 +190,9 @@ class OrdersServiceRepo:
         } filter .id = <uuid>$id;
         """
         o = await self._client.query_single(query, id=id)
-        # TODO: raise error if not exists
+        if o is None:
+            raise OrderNotFoundError
+
         return Order(
             id=o.id,
             phone=o.phone,
@@ -254,8 +265,11 @@ class OrdersServiceRepo:
                 order_id = order.id
                 items = [dataclasses.asdict(item) for item in order.items]
                 items_json = json.dumps(items, cls=UUIDEncoder)
+
+                # Delete old order items
                 await tx.query(delete_old_order_items_query, order_id=order_id)
-                await tx.query(
+                # Update order
+                result = await tx.query_single(
                     update_order_query,
                     id=order_id,
                     phone=order.phone,
@@ -263,8 +277,22 @@ class OrdersServiceRepo:
                     note=order.note,
                     address=order.address,
                 )
-                await tx.query(
-                    create_new_order_items_query, order_id=order_id, items=items_json
-                )
+                if result is None:
+                    raise OrderNotFoundError
+                # Create new order items
+                try:
+                    await tx.query(
+                        create_new_order_items_query,
+                        order_id=order_id,
+                        items=items_json,
+                    )
+                except edgedb.errors.MissingRequiredError as e:
+                    if (
+                        "missing value for required link 'product_variant'"
+                        in e.get_server_context()
+                    ):
+                        raise ProductVariantNotFoundError
+                    raise
+
                 return OrderUpdated(id=order_id)
         assert False, "Unreachable"

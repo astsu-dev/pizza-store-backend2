@@ -22,6 +22,7 @@ router = APIRouter(prefix="/products")
 class ProductCreatePydantic(BaseModel):
     name: str
     category_id: uuid.UUID
+    description: str = ""
     image_url: HttpUrl
 
 
@@ -33,7 +34,11 @@ class ProductDeletedPydantic(BaseModel):
     id: uuid.UUID
 
 
-ProductUpdatePydantic = ProductCreatePydantic
+class ProductUpdatePydantic(BaseModel):
+    name: str
+    category_id: uuid.UUID
+    description: str
+    image_url: HttpUrl
 
 
 class ProductUpdatedPydantic(BaseModel):
@@ -44,6 +49,7 @@ class ProductPydantic(BaseModel):
     id: uuid.UUID
     name: str
     category: CategoryPydantic
+    description: str
     variants: list[ProductVariantPydantic]
     image_url: str
 
@@ -59,6 +65,7 @@ async def create_product(
             ProductCreate(
                 name=product.name,
                 category_id=product.category_id,
+                description=product.description,
                 image_url=product.image_url,
             )
         )
@@ -85,6 +92,7 @@ async def get_products(
             id=p.id,
             name=p.name,
             category=CategoryPydantic(id=p.category.id, name=p.category.name),
+            description=p.description,
             variants=[
                 ProductVariantPydantic(
                     id=v.id,
@@ -117,6 +125,7 @@ async def get_product(
         id=result.id,
         name=result.name,
         category=CategoryPydantic(id=result.category.id, name=result.category.name),
+        description=result.description,
         variants=[
             ProductVariantPydantic(
                 id=v.id,
@@ -159,6 +168,7 @@ async def update_product(
                 id=id,
                 name=product.name,
                 category_id=product.category_id,
+                description=product.description,
                 image_url=product.image_url,
             )
         )

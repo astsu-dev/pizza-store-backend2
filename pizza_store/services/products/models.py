@@ -33,6 +33,7 @@ class CategoryUpdated:
 class ProductCreate:
     name: str
     category_id: uuid.UUID
+    description: str
     image_url: str
 
 
@@ -51,6 +52,7 @@ class ProductUpdate:
     id: uuid.UUID
     name: str
     category_id: uuid.UUID
+    description: str
     image_url: str
 
 

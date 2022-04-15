@@ -109,6 +109,7 @@ class OrdersServiceRepo:
                             id,
                             name
                         },
+                        description,
                         image_url
                     }
                 },
@@ -147,6 +148,7 @@ class OrdersServiceRepo:
                                     id=oi.product_variant.product.category.id,
                                     name=oi.product_variant.product.category.name,
                                 ),
+                                description=oi.product_variant.product.description,
                                 image_url=oi.product_variant.product.image_url,
                             ),
                         ),
@@ -182,6 +184,7 @@ class OrdersServiceRepo:
                             id,
                             name
                         },
+                        description,
                         image_url
                     }
                 },
@@ -216,6 +219,7 @@ class OrdersServiceRepo:
                                 id=oi.product_variant.product.category.id,
                                 name=oi.product_variant.product.category.name,
                             ),
+                            description=oi.product_variant.product.description,
                             image_url=oi.product_variant.product.image_url,
                         ),
                     ),

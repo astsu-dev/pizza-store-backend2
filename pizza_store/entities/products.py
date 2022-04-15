@@ -49,6 +49,7 @@ class ProductWithoutVariants:
     id: uuid.UUID
     name: str
     category: Category
+    description: str
     image_url: str
 
 

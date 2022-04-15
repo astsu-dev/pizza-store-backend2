@@ -101,6 +101,7 @@ class ProductsServiceRepo:
         insert Product {
             name := <str>$name,
             category := (select Category filter .id = <uuid>$category_id),
+            description := <str>$description,
             image_url := <str>$image_url
         };
         """
@@ -109,6 +110,7 @@ class ProductsServiceRepo:
                 query,
                 name=product.name,
                 category_id=product.category_id,
+                description=product.description,
                 image_url=product.image_url,
             )
         except edgedb.errors.MissingRequiredError as e:
@@ -129,6 +131,7 @@ class ProductsServiceRepo:
                 id,
                 name
             },
+            description,
             variants: {
                 id,
                 name,
@@ -151,6 +154,7 @@ class ProductsServiceRepo:
                 id=p.id,
                 name=p.name,
                 category=Category(id=p.category.id, name=p.category.name),
+                description=p.description,
                 image_url=p.image_url,
                 variants=[
                     ProductVariant(
@@ -175,6 +179,7 @@ class ProductsServiceRepo:
                 id,
                 name
             },
+            description,
             variants: {
                 id,
                 name,
@@ -194,6 +199,7 @@ class ProductsServiceRepo:
             id=result.id,
             name=result.name,
             category=Category(id=result.category.id, name=result.category.name),
+            description=result.description,
             image_url=result.image_url,
             variants=[
                 ProductVariant(
@@ -229,6 +235,7 @@ class ProductsServiceRepo:
         set {
             name := <str>$name,
             category := (select Category filter .id = <uuid>$category_id),
+            description := <str>$description,
             image_url := <str>$image_url
         };
         """
@@ -238,6 +245,7 @@ class ProductsServiceRepo:
                 id=product.id,
                 name=product.name,
                 category_id=product.category_id,
+                description=product.description,
                 image_url=product.image_url,
             )
         except edgedb.errors.ConstraintViolationError:

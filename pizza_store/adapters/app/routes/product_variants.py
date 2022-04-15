@@ -54,6 +54,7 @@ class ProductWithoutVariantsPydantic(BaseModel):
     id: uuid.UUID
     name: str
     category: CategoryPydantic
+    description: str
     image_url: str
 
 

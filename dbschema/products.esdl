@@ -13,6 +13,9 @@ module products {
         required link category -> Category {
             on target delete delete source;
         }
+        required property description -> str {
+            default := "";
+        }
         required property image_url -> str;
         multi link variants := .<product[is ProductVariant];
     }

@@ -7,6 +7,8 @@ migrate:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev migrate
 dbshell:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev
+dbdump:
+	docker exec -it pizza-store-backend-db-1 edgedb dump -I local_dev --all --format=dir /dbschema/dump
 dbtypes:
 	docker exec -it pizza-store-backend-db-1 edgedb -I local_dev list types
 dev:

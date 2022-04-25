@@ -2,6 +2,8 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    app_host: str = "localhost"
+    app_port: int = 8000
     edgedb_dsn: str
     jwt_algorithm: str = "HS256"
     jwt_secret: str
